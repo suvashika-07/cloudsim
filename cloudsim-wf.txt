@@ -1,0 +1,337 @@
+download cloudsim 5.0:
+https://github.com/cloudslab/cloudsim/releases?utm_source=chatgpt.com
+
+Download the CloudSim 5.0 source package from the official CloudSim releases page.
+Extract the downloaded ZIP file.
+Open Eclipse.
+Select File → Import → Maven → Existing Maven Projects.
+Click Browse and select the extracted cloudsim-5.0 folder.
+Click Finish.
+Wait for Maven to finish building the project.
+Step 3: Open the correct package
+
+In Eclipse's Project Explorer, expand:
+
+cloudsim-package - modules - cloudsim-examples - src/main/java  -  org.cloudbus.cloudsim.examples
+
+Right-click org.cloudbus.cloudsim.examples → New → Class.
+Enter:
+
+TwoHostFourCloudlets
+
+Click Finish.
+
+Step 4: Paste the working program
+
+Replace the entire contents of TwoHostFourCloudlets.java with the code below.
+
+package org.cloudbus.cloudsim.examples;
+
+import java.util.*;
+
+import org.cloudbus.cloudsim.*;
+import org.cloudbus.cloudsim.core.CloudSim;
+import org.cloudbus.cloudsim.provisioners.*;
+
+public class TwoHostFourCloudlets {
+
+    public static void main(String[] args) {
+
+        try {
+            CloudSim.init(1, Calendar.getInstance(), false);
+
+            // Create one Datacenter with two Hosts
+            List<Host> hostList = new ArrayList<Host>();
+
+            for (int i = 0; i < 2; i++) {
+                List<Pe> peList = new ArrayList<Pe>();
+
+                for (int j = 0; j < 2; j++) {
+                    peList.add(
+                        new Pe(j, new PeProvisionerSimple(1000))
+                    );
+                }
+
+                Host host = new Host(
+                    i,
+                    new RamProvisionerSimple(4096),
+                    new BwProvisionerSimple(10000),
+                    1000000,
+                    peList,
+                    new VmSchedulerTimeShared(peList)
+                );
+
+                hostList.add(host);
+            }
+
+            DatacenterCharacteristics characteristics =
+                new DatacenterCharacteristics(
+                    "x86", "Linux", "Xen", hostList,
+                    10.0, 3.0, 0.05, 0.001, 0.0
+                );
+
+            new Datacenter(
+                "Datacenter_0",
+                characteristics,
+                new VmAllocationPolicySimple(hostList),
+                new LinkedList<Storage>(),
+                0
+            );
+
+            // Create Broker
+            DatacenterBroker broker =
+                new DatacenterBroker("Broker");
+
+            int brokerId = broker.getId();
+
+            // Create two VMs
+            List<Vm> vmList = new ArrayList<Vm>();
+
+            for (int i = 0; i < 2; i++) {
+                Vm vm = new Vm(
+                    i, brokerId, 1000, 1, 512,
+                    1000, 10000, "Xen",
+                    new CloudletSchedulerTimeShared()
+                );
+
+                vmList.add(vm);
+            }
+
+            broker.submitVmList(vmList);
+
+            // Create four Cloudlets
+            List<Cloudlet> cloudletList =
+                new ArrayList<Cloudlet>();
+
+            UtilizationModel utilization =
+                new UtilizationModelFull();
+
+            for (int i = 0; i < 4; i++) {
+                Cloudlet cloudlet = new Cloudlet(
+                    i, 10000, 1, 300, 300,
+                    utilization, utilization, utilization
+                );
+
+                cloudlet.setUserId(brokerId);
+                cloudletList.add(cloudlet);
+            }
+
+            broker.submitCloudletList(cloudletList);
+
+            // Run simulation
+            CloudSim.startSimulation();
+            CloudSim.stopSimulation();
+
+            // Display results
+            List<Cloudlet> results =
+                broker.getCloudletReceivedList();
+
+            System.out.println("\n========== CLOUDLET RESULTS ==========");
+            System.out.println("Cloudlet ID\tStatus\t\tVM ID");
+
+            for (Cloudlet c : results) {
+                System.out.println(
+                    c.getCloudletId() + "\t\t" +
+                    (c.getStatus() == Cloudlet.SUCCESS
+                        ? "SUCCESS" : "FAILED") + "\t\t" +
+                    c.getVmId()
+                );
+            }
+
+            System.out.println("Total Cloudlets: " + results.size());
+            System.out.println("======================================");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+Save the file using Ctrl + S.
+
+Step 5: Run the simulation
+Right-click inside the Java editor.
+Select Run As → Java Application.
+Look at the Console tab.
+
+
+
+
+
+for basic res allocation:
+Open Eclipse.
+Expand:
+modules → cloudsim-examples → src/main/java
+Expand the package:
+org.cloudbus.cloudsim.examples
+
+These are the same setup steps as your previous experiment.
+
+Part 2 — Create a new Java class
+Right-click org.cloudbus.cloudsim.examples.
+Select New → Class.
+
+Enter the class name:
+
+BasicResourceAllocation
+
+Click Finish.
+paste it inside:
+package org.cloudbus.cloudsim.examples;
+
+import org.cloudbus.cloudsim.*;
+import org.cloudbus.cloudsim.core.CloudSim;
+import java.util.*;
+
+public class BasicResourceAllocation {
+
+    public static void main(String[] args) {
+
+        try {
+            int numUsers = 1;
+            Calendar calendar = Calendar.getInstance();
+            boolean traceFlag = false;
+
+            CloudSim.init(numUsers, calendar, traceFlag);
+
+            // Create Datacenter
+            Datacenter datacenter =
+                createDatacenter("Datacenter_0");
+
+            // Create Broker
+            DatacenterBroker broker =
+                new DatacenterBroker("Broker");
+
+            int brokerId = broker.getId();
+
+            // Create 4 VMs
+            List<Vm> vmList = new ArrayList<Vm>();
+
+            int vmCount = 4;
+
+            for (int i = 0; i < vmCount; i++) {
+                Vm vm = new Vm(
+                    i, brokerId, 1000, 1, 1024,
+                    1000, 10000, "Xen",
+                    new CloudletSchedulerTimeShared()
+                );
+
+                vmList.add(vm);
+            }
+
+            broker.submitVmList(vmList);
+
+            // Create 8 Cloudlets
+            List<Cloudlet> cloudletList =
+                new ArrayList<Cloudlet>();
+
+            int cloudletCount = 8;
+
+            for (int i = 0; i < cloudletCount; i++) {
+                Cloudlet cloudlet = new Cloudlet(
+                    i, 40000, 1, 300, 300,
+                    new UtilizationModelFull(),
+                    new UtilizationModelFull(),
+                    new UtilizationModelFull()
+                );
+
+                cloudlet.setUserId(brokerId);
+                cloudletList.add(cloudlet);
+            }
+
+            broker.submitCloudletList(cloudletList);
+
+            // Run Simulation
+            CloudSim.startSimulation();
+            CloudSim.stopSimulation();
+
+            // Display Results
+            List<Cloudlet> resultList =
+                broker.getCloudletReceivedList();
+
+            printCloudletResults(resultList);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static Datacenter createDatacenter(String name) {
+
+        List<Host> hostList = new ArrayList<Host>();
+
+        int hostCount = 4;
+
+        for (int i = 0; i < hostCount; i++) {
+
+            int ram = 2048;
+            long storage = 1000000;
+            int bw = 10000;
+
+            List<Pe> peList = new ArrayList<Pe>();
+
+            peList.add(
+                new Pe(0, new PeProvisionerSimple(1000))
+            );
+
+            Host host = new Host(
+                i,
+                new RamProvisionerSimple(ram),
+                new BwProvisionerSimple(bw),
+                storage,
+                peList,
+                new VmSchedulerTimeShared(peList)
+            );
+
+            hostList.add(host);
+        }
+
+        DatacenterCharacteristics characteristics =
+            new DatacenterCharacteristics(
+                "x86", "Linux", "Xen", hostList,
+                10.0, 3.0, 0.05, 0.001, 0.0
+            );
+
+        try {
+            return new Datacenter(
+                name,
+                characteristics,
+                new VmAllocationPolicySimple(hostList),
+                new LinkedList<Storage>(),
+                0
+            );
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void printCloudletResults(
+            List<Cloudlet> list) {
+
+        System.out.println(
+            "\nCloudlet ID\tSTATUS\tDC ID\tVM ID\tTIME\tSTART\tFINISH"
+        );
+
+        for (Cloudlet cloudlet : list) {
+
+            if (cloudlet.getStatus() == Cloudlet.SUCCESS) {
+                System.out.println(
+                    cloudlet.getCloudletId() + "\t\tSUCCESS\t" +
+                    cloudlet.getResourceId() + "\t" +
+                    cloudlet.getVmId() + "\t" +
+                    cloudlet.getActualCPUTime() + "\t" +
+                    cloudlet.getExecStartTime() + "\t" +
+                    cloudlet.getFinishTime()
+                );
+            }
+        }
+    }
+}
+
+Part 4 — Run the program
+Press Ctrl + S.
+Right-click inside the code editor.
+Select Run As → Java Application.
+Check the Console.
+
+You should see cloudlet results with SUCCESS statuses.

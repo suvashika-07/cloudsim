@@ -1,0 +1,10 @@
+download cloudAnalyst zip: 
+https://github.com/cloudslab/cloudsim/releases?utm_source=chatgpt.com
+install netbeans: nb17
+https://netbeans.apache.org/front/main/download/archive/
+Open NetBeans.
+Click File → Open Project.
+Navigate to:
+Downloads → cloud_analyst → cloud_analyst
+Select the inner cloud_analyst project folder.
+Click Open Project.
